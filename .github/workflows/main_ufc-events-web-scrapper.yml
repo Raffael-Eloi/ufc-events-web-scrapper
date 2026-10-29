@@ -7,38 +7,43 @@ name: Build and deploy Python project to Azure Function App - ufc-events-web-scr
 on:
   push:
     branches:
-      - "main"
+      - 'main'
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: "." # set this to the path to your web app project, defaults to the repository root
-  PYTHON_VERSION: "3.14" # set this to the python version to use (supports 3.6, 3.7, 3.8)
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
+  PYTHON_VERSION: '3.14' # set this to the python version to use (supports 3.6, 3.7, 3.8)
 
 jobs:
   build:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     permissions:
       contents: read #This is required for actions/checkout
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       - name: Setup Python version
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      - name: Create and start virtual environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+
       - name: Install dependencies
-        run: pip install -r requirements.txt --target=".python_packages/lib/site-packages"
+        run: pip install -r requirements.txt
 
       # Optional: Add step to run tests here
 
       - name: Zip artifact for deployment
-        run: zip release.zip . -r -x ".git/*" ".github/*"
+        run: zip release.zip ./* -r
 
       - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: python-app
           path: |
@@ -46,7 +51,7 @@ jobs:
             !venv/
 
   deploy:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     needs: build
     permissions:
       id-token: write #This is required for requesting the JWT
@@ -54,7 +59,7 @@ jobs:
 
     steps:
       - name: Download artifact from build job
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v4
         with:
           name: python-app
 
@@ -62,18 +67,19 @@ jobs:
         run: |
           unzip release.zip
           rm release.zip
-
+        
       - name: Login to Azure
-        uses: azure/login@v3
+        uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_B927206DFE9F4082A81A9860CC92B116 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0424A8EB8A854B0EB4F4F9E3501EB9EF }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_FC890922720141DC94C5F65E90E81E6C }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F94AC18B42E547568BB9F2FB54C8D181 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_18B123260BC7492487EBBD23863C3B27 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F3A6C015F4E6453ABB5EE82070E4B57B }}
 
-      - name: "Deploy to Azure Functions"
+      - name: 'Deploy to Azure Functions'
         uses: Azure/functions-action@v1
         id: deploy-to-function
         with:
-          app-name: "ufc-events-web-scrapper"
-          slot-name: "Production"
+          app-name: 'ufc-events-web-scrapper'
+          slot-name: 'Production'
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          
