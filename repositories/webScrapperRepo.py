@@ -40,7 +40,7 @@ class WebScrapperRepo:
         ufcEvent.number = int(numberMatch.group(1)) if numberMatch else None
         ufcEvent.mainCardStartTime = self._toDatetime(dateInfo["data-main-card-timestamp"])
         ufcEvent.preliminaryCardStartTime = self._toDatetime(dateInfo["data-prelims-card-timestamp"])
-        ufcEvent.date = ufcEvent.mainCardStartTime
+        ufcEvent.date = ufcEvent.mainCardStartTime.date()
         ufcEvent.arena = card.select_one(".c-card-event--result__location h5").get_text(strip=True)
         ufcEvent.city = card.select_one(".c-card-event--result__location .locality").get_text(strip=True)
         ufcEvent.country = card.select_one(".c-card-event--result__location .country").get_text(strip=True)

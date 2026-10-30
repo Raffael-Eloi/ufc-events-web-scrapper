@@ -6,7 +6,7 @@ class UfcEvent:
     name: str
     type: UfcEventType
     number: int | None
-    date: datetime
+    date: datetime.date
     city: str
     country: str
     arena: str
